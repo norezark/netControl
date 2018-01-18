@@ -1,12 +1,19 @@
-﻿<Window x:Class="netControl.setting"
+﻿<Window x:Class="gui.Setting"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:netControl"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d"
-        Title="setting" Height="450" Width="800">
+        Title="Setting" Loaded="Window_Loaded" ResizeMode="NoResize" SizeToContent="WidthAndHeight" Closing="Window_Closing" Width="204.243">
     <Grid>
-        
+        <CheckBox x:Name="set_topmost" Content="最前面" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="{Binding Flag_topmost, Mode=TwoWay}" Checked="Set_topmost_Checked" Unchecked="Set_topmost_Unchecked"/>
+        <CheckBox x:Name="set_transport" Content="半透明" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked" IsChecked="{Binding Flag_transport}"/>
+        <Slider x:Name="slid_opacity" HorizontalAlignment="Left" Margin="70,45,0,0" VerticalAlignment="Top" Width="90" Maximum="1" IsEnabled="{Binding IsChecked, ElementName=set_transport}" LargeChange="0.1" SmallChange="0.01" ValueChanged="Slid_opacity_ValueChanged" TickFrequency="0.01" Value="{Binding Set_opacity, Mode=OneWay}"/>
+        <Label x:Name="label_transport" Content="透明度" HorizontalAlignment="Left" Margin="24,45,0,0" VerticalAlignment="Top" IsEnabled="{Binding IsChecked, ElementName=set_transport}"/>
+        <CheckBox x:Name="set_control" Content="Ctrl押下中のみ非透過" HorizontalAlignment="Left" Margin="24,71,0,0" VerticalAlignment="Top" IsChecked="{Binding Flag_control, Mode=TwoWay}" IsEnabled="{Binding IsChecked, ElementName=set_transport}"/>
+        <Label x:Name="label_gb" Content="GB" HorizontalAlignment="Left" Margin="141,91,10,10" VerticalAlignment="Top" IsEnabled="{Binding IsChecked, ElementName=set_limiting}"/>
+        <xctk:IntegerUpDown x:Name="set_limit" Margin="95,91,62,16" Minimum="0" DisplayDefaultValueOnEmptyText="True" DefaultValue="{Binding T_limit}" Value="{Binding T_limit}" IsEnabled="{Binding IsChecked, ElementName=set_limiting}" />
+        <CheckBox x:Name="set_limiting" Content="通信量制限" HorizontalAlignment="Left" Margin="10,91,0,0" VerticalAlignment="Top" Checked="CheckBox_Checked_1" Unchecked="CheckBox_Unchecked_1" IsChecked="{Binding Flag_limit}" />
     </Grid>
 </Window>

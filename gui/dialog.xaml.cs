@@ -1,4 +1,6 @@
-﻿using System.Net.NetworkInformation;
+﻿using System;
+using System.Net.NetworkInformation;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -16,12 +18,29 @@ namespace gui
 
         public NetworkInterface[] allNetworkInterfaces;
 
+        private Timer Timer;
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             allNetworkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
             foreach (var netint in allNetworkInterfaces)
             {
                 combo1.Items.Add(netint.Name);
+            }
+
+            Timer = new Timer();
+            Timer.Elapsed += new ElapsedEventHandler(AdapterCheck);
+            Timer.Interval = 1000;
+            Timer.AutoReset = true;
+            Timer.Start();
+        }
+
+        private void AdapterCheck(object sender, ElapsedEventArgs e)
+        {
+            allNetworkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+            if (MainWindow.IsActiveAdapter(MainWindow.Set) && MainWindow.Mac.ToString() == allNetworkInterfaces[MainWindow.Set].GetPhysicalAddress().ToString())
+            {
+                Timer.Dispose();
+                this.Dispatcher.Invoke(new Action(() => { Close(); }));
             }
         }
 
@@ -42,7 +61,7 @@ namespace gui
             if (MainWindow.IsActiveAdapter(combo1.SelectedIndex))
             {
                 MainWindow.Set = combo1.SelectedIndex;
-                MainWindow.Id = allNetworkInterfaces[MainWindow.Set].Id;
+                MainWindow.Mac = allNetworkInterfaces[MainWindow.Set].GetPhysicalAddress();
                 Close();
             }
         }

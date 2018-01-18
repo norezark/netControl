@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace netControl.Properties {
+namespace gui.Properties {
     using System;
     
     

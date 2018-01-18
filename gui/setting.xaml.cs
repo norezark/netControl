@@ -1,31 +1,122 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
+using System;
 using System.Windows.Controls;
+using System.ComponentModel;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
-namespace netControl
+namespace gui
 {
     /// <summary>
-    /// setting.xaml の相互作用ロジック
+    /// Setting.xaml の相互作用ロジック
     /// </summary>
-    public partial class setting : Window
+    public partial class Setting : Window, INotifyPropertyChanged
     {
-        public setting()
+        public Setting()
         {
             InitializeComponent();
         }
 
-        private object parent;
+        public event PropertyChangedEventHandler PropertyChanged;
+        public void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-        public object Parent { get => parent; set => parent = value; }
+        private MainWindow parent;
+        public new MainWindow Parent { get => parent; set => parent = value as MainWindow; }
+        private static int t_limit;
+
+        public bool Flag_transport
+        {
+            get
+            {
+                return Parent.Flag_transport;
+            }
+            set
+            {
+                Parent.Flag_transport = value;
+                OnPropertyChanged("Flag_transport");
+            }
+        }
+        public bool Flag_control
+        {
+            get
+            {
+                return Parent.Set_control;
+            }
+            set
+            {
+                Parent.Set_control = value;
+                OnPropertyChanged("Flag_control");
+            }
+        }
+
+        public double Set_opacity { get => Parent.Set_opacity; }
+        public static int T_limit { get => t_limit; set => t_limit = value; }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            set_topmost.DataContext = Parent;
+            set_transport.DataContext = this;
+            label_transport.DataContext = this;
+            slid_opacity.DataContext = this;
+            set_control.DataContext = this;
+            OnPropertyChanged("Flag_transport");
+            T_limit = Parent.Set_limit;
+            set_limit.DataContext = this;
+            OnPropertyChanged("T_limit");
+            set_limiting.DataContext = Parent;
+        }
+
+        private void Set_topmost_Checked(object sender, RoutedEventArgs e)
+        {
+            Parent.Flag_topmost = true;
+        }
+
+        private void Set_topmost_Unchecked(object sender, RoutedEventArgs e)
+        {
+            Parent.Flag_topmost = false;
+        }
+
+        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            Parent.Flag_transport = true;
+            Parent.Set_opacity = Parent.Set_opacity;
+        }
+
+        private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            Parent.Flag_transport = false;
+            Parent.Dispatcher.Invoke(new Action(() =>
+            {
+                Parent.Opacity = 1;
+            }));
+        }
+
+        private void Slid_opacity_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if(Parent.Flag_transport)
+            {
+                Parent.Dispatcher.Invoke(new Action(() => Parent.Set_opacity = e.NewValue));
+            }
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            Parent.Set_limit = T_limit;
+            if (!sender.Equals(Parent))
+            {
+                e.Cancel = true;
+                Hide();
+                System.Diagnostics.Debug.WriteLine("a");
+            }
+        }
+
+        private void CheckBox_Checked_1(object sender, RoutedEventArgs e)
+        {
+            Parent.Flag_limit = true;
+        }
+
+        private void CheckBox_Unchecked_1(object sender, RoutedEventArgs e)
+        {
+            Parent.Flag_limit = false;
+        }
     }
 }

@@ -7,7 +7,7 @@ using System.Threading;
 using Microsoft.Win32;
 using System.Windows;
 
-namespace netControl
+namespace gui
 {
     class Program
     {
