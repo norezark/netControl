@@ -61,14 +61,6 @@ namespace gui
             {
                 flag_topmost = value;
                 OnPropertyChanged("Flag_topmost");
-                if (value)
-                {
-                    globalhook.MouseMove += GlobalhookMouseMoveEvent;
-                }
-                else
-                {
-                    globalhook.MouseMove -= GlobalhookMouseMoveEvent;
-                }
             }
         }
         public string Sum { get => sum; set => sum = value; }
@@ -91,8 +83,7 @@ namespace gui
         public bool Flag_transport { get => flag_transport; set => flag_transport = value; }
         public ICommand Leftclickcommand { get; private set; }
         public int Set_limit { get => set_limit; set => set_limit = value; }
-
-        private Window owner;
+        
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             globalhook = Hook.GlobalEvents();
@@ -108,14 +99,15 @@ namespace gui
                 }
             }
 
-            owner = new Window
+            Window owner = new Window
             {
                 WindowStyle = WindowStyle.ToolWindow,
                 ShowInTaskbar = false,
                 Left = -1,
                 Top = -1,
                 Width = 0,
-                Height = 0
+                Height = 0,
+                Visibility = Visibility.Collapsed
             };
             owner.Show();
             this.Owner = owner;
@@ -149,16 +141,18 @@ namespace gui
                 Parent = this
             };
             setting.Hide();
+            
+            globalhook.MouseMove += GlobalhookMouseMoveEvent;
         }
 
         private void GlobalhookMouseMoveEvent(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             if (flag_control || !Flag_transport) return;
-            if (e.X >= WindowPointX && e.X <= WindowPointX + this.Width && e.Y >= WindowPointY && e.Y <= WindowPointY + this.Height)
+            if (e.X >= Left && e.X <= Left + this.Width && e.Y >= Top && e.Y <= Top + this.Height)
             {
                 Opacity = 0;
             }
-            else
+            else if(Opacity == 0)
             {
                 Set_opacity = Set_opacity;
             }
@@ -200,7 +194,7 @@ namespace gui
         {
             if (flag_control)
             {
-                Set_opacity = set_opacity;
+                Set_opacity = Set_opacity;
                 flag_control = false;
                 GlobalhookMouseMoveEvent(this, new System.Windows.Forms.MouseEventArgs(MouseButtons.None, 0, System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y, 0));
             }
@@ -409,9 +403,8 @@ namespace gui
 
                     using (var cmd = con.CreateCommand())
                     {
-                        cmd.CommandText = @"UPDATE adapter SET a_set=@set, a_mac='@mac'";
+                        cmd.CommandText = @"UPDATE adapter SET a_set=@set, a_mac='" + Mac.ToString() + "'";
                         cmd.Parameters.Add(new SQLiteParameter("set", Set));
-                        cmd.Parameters.Add(new SQLiteParameter("mac", Mac.ToString()));
                         cmd.ExecuteNonQuery();
 
                         cmd.CommandText = @"INSERT INTO traffic (t_date, t_bytes) VALUES (@date, @bytes)";
@@ -436,6 +429,7 @@ namespace gui
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
+            globalhook.MouseMove -= GlobalhookMouseMoveEvent;
             setting.Close();
             Save();
             Flag_topmost = false;
@@ -490,7 +484,8 @@ namespace gui
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            owner.Close();
+            Owner.Close();
+            Environment.Exit(0);
         }
     }
 }

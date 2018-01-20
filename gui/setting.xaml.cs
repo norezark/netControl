@@ -101,12 +101,8 @@ namespace gui
         private void Window_Closing(object sender, CancelEventArgs e)
         {
             Parent.Set_limit = T_limit;
-            if (!sender.Equals(Parent))
-            {
-                e.Cancel = true;
-                Hide();
-                System.Diagnostics.Debug.WriteLine("a");
-            }
+            e.Cancel = true;
+            Hide();
         }
 
         private void CheckBox_Checked_1(object sender, RoutedEventArgs e)
