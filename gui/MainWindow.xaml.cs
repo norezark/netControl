@@ -140,6 +140,7 @@ namespace gui
             {
                 Parent = this
             };
+            setting.Show();
             setting.Hide();
             
             globalhook.MouseMove += GlobalhookMouseMoveEvent;
