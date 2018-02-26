@@ -5,18 +5,23 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d"
-        Title="netControl" Loaded="Window_Loaded" ResizeMode="CanMinimize" Closing="Window_Closing" MouseLeftButtonDown="Window_MouseLeftButtonDown" ShowInTaskbar="False" SizeToContent="WidthAndHeight" WindowStyle="None" WindowState="Minimized" MouseLeftButtonUp="Window_MouseLeftButtonUp" AllowsTransparency="True" Opacity="{Binding Set_opacity, Mode=OneWay}" Topmost="{Binding Flag_topmost}" IsTabStop="False" Focusable="False" Icon="nC.ico" Closed="Window_Closed">
+        Title="netControl" Loaded="Window_Loaded" ResizeMode="CanMinimize" Closing="Window_Closing" MouseLeftButtonDown="Window_MouseLeftButtonDown" ShowInTaskbar="False" SizeToContent="WidthAndHeight" WindowStyle="None" WindowState="Minimized" MouseLeftButtonUp="Window_MouseLeftButtonUp" AllowsTransparency="True" Opacity="{Binding Set_opacity, Mode=OneWay}" Topmost="{Binding Flag_topmost}" IsTabStop="False" Focusable="False" Icon="nC.ico" Closed="Window_Closed" Height="99.5" Width="100">
     <Grid>
+        <Grid.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="_Setting" Click="Setting"/>
+                <MenuItem Header="_Exit" Click="Exit"/>
+            </ContextMenu>
+        </Grid.ContextMenu>
         <tb:TaskbarIcon Name="TaskberIcon" IconSource="nC.ico" NoLeftClickDelay="True" ToolTipText="{Binding Sum}" LeftClickCommand="{Binding Leftclickcommand}">
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="_Open" FontWeight="Bold" Click="Open"/>
-                     <!--<MenuItem x:Name="check_topmost" IsCheckable="True" Header="_最前面" IsChecked="{Binding Topmostflag, Mode=TwoWay}" Checked="MenuItem_Checked" Unchecked="MenuItem_Unchecked"/>--> 
                     <MenuItem Header="_Setting" Click="Setting"/>
                     <MenuItem Header="_Exit" Click="Exit"/>
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>
-        <Label x:Name="time_label1" Content="{Binding Context}" Margin="0,0,0,0"/>
+        <Label x:Name="time_label1" Content="{Binding Context}" />
     </Grid>
 </Window>
