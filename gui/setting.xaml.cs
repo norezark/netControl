@@ -22,8 +22,6 @@ namespace gui
         private MainWindow parent;
         public new MainWindow Parent { get => parent; set => parent = value as MainWindow; }
         private static int t_limit;
-        private static int s_date_h;
-        private static int s_date_m;
 
         public bool Flag_transport
         {
@@ -52,8 +50,6 @@ namespace gui
 
         public double Set_opacity { get => Parent.Set_opacity; }
         public static int T_limit { get => t_limit; set => t_limit = value; }
-        public static int S_date_h { get => s_date_h; set => s_date_h = value; }
-        public static int S_date_m { get => s_date_m; set => s_date_m = value; }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -67,12 +63,6 @@ namespace gui
             set_limit.DataContext = this;
             OnPropertyChanged("T_limit");
             set_limiting.DataContext = Parent;
-            S_date_h = Parent.Date_h;
-            S_date_m = Parent.Date_m;
-            date_h.DataContext = this;
-            date_m.DataContext = this;
-            OnPropertyChanged("S_Date_h");
-            OnPropertyChanged("S_Date_m");
         }
 
         private void Set_topmost_Checked(object sender, RoutedEventArgs e)
@@ -111,8 +101,6 @@ namespace gui
         private void Window_Closing(object sender, CancelEventArgs e)
         {
             Parent.Set_limit = T_limit;
-            Parent.Date_h = S_date_h;
-            Parent.Date_m = S_date_m;
             e.Cancel = true;
             Hide();
         }

@@ -1,5 +1,4 @@
 ﻿using Gma.System.MouseKeyHook;
-using netControl;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,7 +10,6 @@ using System.Timers;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
-using static netControl.Graphical;
 
 namespace gui
 {
@@ -44,8 +42,6 @@ namespace gui
         private static bool set_control = false;
         private static bool flag_limit = true;
         private static int set_limit = 10;
-        private static int date_h = 1;
-        private static int date_m = 0;
         private static double set_opacity = 1;
         private static IKeyboardMouseEvents globalhook;
 
@@ -65,14 +61,6 @@ namespace gui
             {
                 flag_topmost = value;
                 OnPropertyChanged("Flag_topmost");
-                if (value)
-                {
-                    globalhook.MouseMove += GlobalhookMouseMoveEvent;
-                }
-                else
-                {
-                    globalhook.MouseMove -= GlobalhookMouseMoveEvent;
-                }
             }
         }
         public string Sum { get => sum; set => sum = value; }
@@ -95,11 +83,7 @@ namespace gui
         public bool Flag_transport { get => flag_transport; set => flag_transport = value; }
         public ICommand Leftclickcommand { get; private set; }
         public int Set_limit { get => set_limit; set => set_limit = value; }
-        public bool Flag_limit { get => flag_limit; set => flag_limit = value; }
-        public int Date_h { get => date_h; set => date_h = value; }
-        public int Date_m { get => date_m; set => date_m = value; }
-
-
+        
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             globalhook = Hook.GlobalEvents();
@@ -147,7 +131,7 @@ namespace gui
             this.Top = WindowPointY;
 
             Timer = new System.Timers.Timer();
-            Timer.Elapsed += new ElapsedEventHandler(S_content);
+            Timer.Elapsed += new ElapsedEventHandler(Content);
             Timer.Interval = 1000;
             Timer.AutoReset = true;
             Timer.Enabled = true;
@@ -159,7 +143,7 @@ namespace gui
             setting.Show();
             setting.Hide();
             
-            graph.Show();
+            globalhook.MouseMove += GlobalhookMouseMoveEvent;
         }
 
         private void GlobalhookMouseMoveEvent(object sender, System.Windows.Forms.MouseEventArgs e)
@@ -169,12 +153,11 @@ namespace gui
             {
                 Opacity = 0;
             }
-            else if (Opacity != Set_opacity)
+            else if(Opacity == 0)
             {
                 Set_opacity = Set_opacity;
             }
         }
-
 
         public bool Set_control
         {
@@ -197,6 +180,8 @@ namespace gui
                 }
             }
         }
+
+        public bool Flag_limit { get => flag_limit; set => flag_limit = value; }
 
         private void GlobalhookKeyDownEvent(object sender, System.Windows.Forms.KeyEventArgs e)
         {
@@ -249,17 +234,7 @@ namespace gui
                     var columns = new List<string[]>() {
                             new string[] { "adapter", "a_set INTEGER DEFAULT -1", "a_mac TEXT DEFAULT '0000000000000000'" },
                             new string[] { "traffic", "t_num INTEGER PRIMARY KEY AUTOINCREMENT", "t_date TEXT", "t_bytes INTEGER" },
-                            new string[] { "setting",   "s_topmost INTEGER DEFAULT 0",
-                                                        "s_x REAL DEFAULT 0",
-                                                        "s_y REAL DEFAULT 0",
-                                                        "s_trans INTEFGER DEFAULT 1",
-                                                        "s_opacity REAL DEFAULT 1",
-                                                        "s_control INTEGER DEFAULT 0",
-                                                        "s_limit INTEGER DEFAULT 1",
-                                                        "s_limiting INTEGER DEFAULT 1",
-                                                        "s_date_h INTEGER DEFAULT 1",
-                                                        "s_date_m INTEGER DEFAULT 0"
-                                            }
+                            new string[] { "setting", "s_topmost INTEGER DEFAULT 0", "s_x REAL DEFAULT 0", "s_y REAL DEFAULT 0", "s_trans INTEFGER DEFAULT 1", "s_opacity REAL DEFAULT 1", "s_control INTEGER DEFAULT 0", "s_limit INTEGER DEFAULT 1", "s_limiting INTEGER DEFAULT 1" }
                         };
                     foreach (var column in columns)
                     {
@@ -320,17 +295,14 @@ namespace gui
                         using (var reader = cmd.ExecuteReader())
                         {
                             reader.Read();
-                            int i = 0;
-                            Flag_topmost = (reader.GetInt16(i++) == 1);
-                            WindowPointX = reader.GetDouble(i++);
-                            WindowPointY = reader.GetDouble(i++);
-                            Flag_transport = (reader.GetInt16(i++) == 1);
-                            Set_opacity = reader.GetDouble(i++);
-                            Set_control = (reader.GetInt16(i++) == 1);
-                            Set_limit = reader.GetInt16(i++);
-                            Flag_limit = (reader.GetInt16(i++) == 1);
-                            Date_h = reader.GetInt16(i++);
-                            Date_m = reader.GetInt16(i++);
+                            Flag_topmost = (reader.GetInt16(0) == 1);
+                            WindowPointX = reader.GetDouble(1);
+                            WindowPointY = reader.GetDouble(2);
+                            Flag_transport = (reader.GetInt16(3) == 1);
+                            Set_opacity = reader.GetDouble(4);
+                            Set_control = (reader.GetInt16(5) == 1);
+                            Set_limit = reader.GetInt16(6);
+                            Flag_limit = (reader.GetInt16(7) == 1);
                         }
                     }
                     else
@@ -363,64 +335,51 @@ namespace gui
 
         public event PropertyChangedEventHandler PropertyChanged;
         public void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-        class Contents
+        
+        private long bef = 0;
+        private new void Content(object sender, ElapsedEventArgs e)
         {
-            public long bef = 0;
-            public long ras;
-            public DateTime p;
-            public string tmpcont;
-            public bool tmpflag1, tmpflag2;
-            public long dif;
-            public double MBps;
-        }
-        private Contents con = new Contents();
-        private void S_content(object sender, ElapsedEventArgs e)
-        {
-            con.ras = Netint.GetIPv4Statistics().BytesReceived + Netint.GetIPv4Statistics().BytesSent;
+            long ras = Netint.GetIPv4Statistics().BytesReceived + Netint.GetIPv4Statistics().BytesSent;
 
             Time = DateTime.Now;
-            con.p = Time.AddHours(-Date_h).AddMinutes(-Date_m);
-
-            if (con.p.Date != con.p.AddSeconds(-1).Date)
+            
+            if (Time.AddHours(-1).AddSeconds(-1).ToShortDateString() != Time.AddHours(-1).ToShortDateString())
             {
                 Save();
                 Today = 0;
-                con.bef = 0;
+                bef = 0;
             }
 
-            con.tmpcont = "";
-            con.tmpflag1 = true;
-            con.tmpflag2 = false;
-            if (con.ras == 0)
+            string tmpcont = "";
+            bool tmpflag1 = true;
+            bool tmpflag2 = false;
+            if (ras == 0)
             {
-                con.bef = 0;
-                con.tmpcont = "アダプタが切断されています。";
-                con.tmpflag1 = false;
+                bef = 0;
+                tmpcont = "アダプタが切断されています。";
+                tmpflag1 = false;
             }
-            if (con.bef == 0) con.bef = con.ras;
-            con.dif = con.ras - con.bef;
-            con.bef = con.ras;
-            Today += con.dif;
+            if (bef == 0) bef = ras;
+            long dif = ras - bef;
+            bef = ras;
+            Today += dif;
             if (Today / Math.Pow(1024.0, 3.0) < Set_limit)
             {
-                if (con.tmpflag1) con.tmpcont = Netint.Name;
+                if (tmpflag1) tmpcont = Netint.Name;
             }
             else
             {
                 if (Flag_limit)
                 {
-                    con.tmpcont = "アダプタを切断します。";
-                    con.tmpflag2 = true;
+                    tmpcont = "アダプタを切断します。";
+                    tmpflag2 = true;
                 }
             }
-            con.MBps = con.dif / Math.Pow(1024, 2);
             Sum = $"送受信バイト数:{Today / Math.Pow(1024, 3):f2}GB";
-            Context = $"{Time}\n{con.tmpcont}\n{Sum}\n速度:{con.MBps:f2}MB/s {con.MBps * 8:f2}Mbps";
+            Context = $"{Time}\n{tmpcont}\n{Sum}\n速度:{dif / Math.Pow(1024, 2):f2}MB/s {dif * 8 / Math.Pow(1024, 2):f2}Mbps";
             OnPropertyChanged("Sum");
             OnPropertyChanged("Context");
-            if (graph.IsHandleCreated) graph.Invoke((MethodInvoker)delegate { graph.AddData(con.MBps); });
-            if (con.tmpflag2)
+            if (tmpflag2)
             {
                 using (Process process = new Process())
                 {
@@ -454,7 +413,7 @@ namespace gui
                         cmd.Parameters.Add(new SQLiteParameter("bytes", Today));
                         cmd.ExecuteNonQuery();
 
-                        cmd.CommandText = @"UPDATE setting SET s_topmost=@topmost, s_x=@x, s_y=@y, s_trans=@trans, s_opacity=@opacity, s_control=@control, s_limit=@limit, s_limiting=@limiting, s_date_h=@date_h, s_date_m=@date_m";
+                        cmd.CommandText = @"UPDATE setting SET s_topmost=@topmost, s_x=@x, s_y=@y, s_trans=@trans, s_opacity=@opacity, s_control=@control, s_limit=@limit, s_limiting=@limiting";
                         cmd.Parameters.Add(new SQLiteParameter("topmost", flag_topmost ? 1 : 0));
                         cmd.Parameters.Add(new SQLiteParameter("x", WindowPointX));
                         cmd.Parameters.Add(new SQLiteParameter("y", WindowPointY));
@@ -463,8 +422,6 @@ namespace gui
                         cmd.Parameters.Add(new SQLiteParameter("control", Set_control ? 1 : 0));
                         cmd.Parameters.Add(new SQLiteParameter("limit", Set_limit));
                         cmd.Parameters.Add(new SQLiteParameter("limiting", Flag_limit ? 1 : 0));
-                        cmd.Parameters.Add(new SQLiteParameter("date_h", Date_h));
-                        cmd.Parameters.Add(new SQLiteParameter("date_m", Date_m));
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -473,9 +430,9 @@ namespace gui
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
+            globalhook.MouseMove -= GlobalhookMouseMoveEvent;
             setting.Close();
             Save();
-            graph.Close();
             Flag_topmost = false;
             Set_control = false;
             TaskberIcon.Dispose();
@@ -492,7 +449,7 @@ namespace gui
             WindowPointX = this.Left;
             WindowPointY = this.Top;
         }
-
+        
         public void Open(object sender, RoutedEventArgs e)
         {
             this.WindowState = WindowState.Normal;
@@ -514,7 +471,7 @@ namespace gui
         {
             setting.Show();
         }
-
+        
         private void Exit(object sender, RoutedEventArgs e)
         {
             Close();
@@ -531,7 +488,5 @@ namespace gui
             Owner.Close();
             Environment.Exit(0);
         }
-
-        private Graphical graph = new Graphical();
     }
 }
